@@ -1,0 +1,88 @@
+Dynamic Inventory
+-------------------------
+
+If your Ansible inventory fluctuates over time, with hosts
+
+spinning up and shutting down in response to business demands
+
+as part of your Autoscaling setup,
+
+then you need to setup the dynamic inventory to meet the requirement
+
+____________________________________________________________________
+ansible Dynamic inventory documents
+   https://docs.ansible.com/ansible/latest/collections/amazon/aws/aws_ec2_inventory.html
+
+Requirements
+-------------------
+The below requirements are needed on the local controller node that executes this inventory.
+
+python >= 3.6
+
+boto3 >= 1.26.0
+
+botocore >= 1.29.0
+
+
+
+To install it, use: 
+    ansible-galaxy collection install amazon.aws
+install pip3:
+    apt install python3-pip
+    pip3 install boto3
+To use it in a playbook, specify: 
+    amazon.aws.aws_ec2
+
+sudo su -
+apt update
+apt upgrade
+apt install software-properties-common
+apt-add-repository --yes --update ppa:ansible/ansible
+apt install ansible
+ansible --version
+apt install python3-pip
+apt update
+apt upgrade
+pip install boto3
+ansible-galaxy collection install amazon.aws
+   
+   
+Create an inventory directory under /opt and cd into the directory
+  
+  sudo mkdir -p /opt/ansible/inventory
+  cd /opt/ansible/inventory
+
+
+5. Create a file named aws_ec2.yaml in the inventory directory.
+
+vi aws_ec2.yml
+
+put below script in aws_ec2.yaml
+
+------------------------
+plugin: aws_ec2
+
+#aws_access_key: <YOUR-AWS-ACCESS-KEY-HERE>
+#aws_secret_key: <YOUR-AWS-SECRET-KEY-HERE>
+
+regions:
+  - us-east-1
+
+keyed_groups:
+  - key: tags
+    prefix: tag
+    - prefix: 
+  # - prefix: instance_type
+  #   key: instance_type
+  # - key: placement.region
+  #   prefix: aws_region
+----------------------------------	
+
+
+
+7.Create a role on AWS PLATFORM WITH  EC2FULLAccess
+  Attach the role to Ansible controller machine
+  
+6. Now Execute below command to fetch host server
+    
+	ansible-inventory -i aws_ec2.yaml --graph

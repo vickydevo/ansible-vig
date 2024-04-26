@@ -1,0 +1,148 @@
+Installing Ansible on Ubuntu
+----------------------------
+documents for ansible : https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-ansible-on-ubuntu
+
+ sudo apt update
+ sudo apt install software-properties-common
+ sudo add-apt-repository --yes --update ppa:ansible/ansible
+ sudo apt install ansible -y
+ 
+ 
+copy private key into other server  [use scp]
+--------------------------------------
+    scp -i "sadik.pem" sadik.pem ubuntu@ec2-174-129-83-202.compute-1.amazonaws.com:/home/ubuntu/keys
+
+Add server into host_inventory /etc/ansible/hosts
+-----------------------------------------------
+[devservers]
+server1 ansible_host=3.82.157.147
+server2 ansible_host=3.93.143.85
+server3 ansible_host=100.24.22.162
+
+[webservers]
+web1 ansible_host=192.168.1.101 ansible_ssh_private_key_file=/path/to/private_key.pem
+web2 ansible_host=192.168.1.102 ansible_ssh_private_key_file=/path/to/private_key.pem
+
+ansible should identify the path of private key
+-----------------------------------------------
+adding vars for all servers from all groups
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_user=ubuntu
+ansible_ssh_private_key_file=/home/ubuntu/keys/sadik.pem
+
+ping all servers
+----------------
+ansible devservers -m ping 
+ansible devservers -m ping -i /home/ubuntu/path/hosts --private-key=~/.ssh/project.pem
+
+check RAM for all srvers
+------------------------
+ansible devservers -a "free -h"
+  -a: This option specifies that you're providing an ad-hoc command to run on the remote hosts.
+
+ansible devservers -a "sudo apt update"
+
+command to list your inventory 
+------------------------------
+ansible-inventory --list -y
+
+ansible-inventory --list -y -i /home/ubuntu/filename/hosts
+
+---
+  - name: Dates Playbooks
+    hosts: dev
+    become: yes
+    become_user: root
+    gather_facts: false
+    tasks:
+      - name: Show date
+        command: date
+
+      - name: start uptime
+        command: uptime
+--------------------------------
+install_nginx.yml   
+
+---
+- name: deploy nginx server
+  hosts: dev
+  become: yes
+  tasks:
+    - name: Install Nginx
+      apt: 
+        name: nginx
+        state: latest
+    - name: Start service nginx, if not started
+      ansible.builtin.service:
+        name: nginx
+        state: started
+
+---
+  - name: Deploying nginx server
+    hosts: all
+    become: yes
+    become_user: root
+    gather_facts: true
+    tasks: 
+      - name: installing nginx server
+        apt:
+          name: nginx
+          state: latest
+      - name: copying html in /var/www/html/index.html
+        copy:
+          src: /home/ubuntu/index.html
+          dest: /var/www/html
+
+      - name: start nginx service
+        service: 
+          name: nginx
+          state: started
+        notify: restart nginx
+    handlers:
+      - name: restart nginx
+        service:
+          name: nginx
+          state: restarted  
+---
+  - name: remove nginx server
+    hosts: tag_env_dev
+    become: yes
+    become_user: root
+    gather_facts: true
+    tasks:
+      - name: remove nginx server
+        apt:
+          name: nginx
+          state: absent
+
+          chat
+---
+- name: removing nginx server
+  hosts: tag_env_dev
+  become: yes
+  become_user: root
+  gather_facts: true
+  tasks:
+    - name: removing nginx server
+      apt:
+        name: nginx
+        state: absent
+
+-------------------------------------
+---
+  - name: installing packages for python env
+    become: yes
+    apt:
+      name:
+        - python3-pip
+      update_cache: yes
+
+  - name: Creates directory
+    file:
+      path: ./basic-http-server
+      state: directory
+  - name: install apache2
+    become: yes
+    apt: name=apache2 update_cache=yes state=latest

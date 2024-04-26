@@ -1,0 +1,11 @@
+---
+- name: Install required packages
+  apt:
+    name:   
+      - git
+      - maven
+      - curl
+      - nginx
+    state: present
+    update_cache: yes
+# (update_cache: yes) before installing the packages.
